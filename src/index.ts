@@ -1,4 +1,4 @@
-import { defineIntegration, createRestHandler } from '@weldable/integration-core'
+import { defineIntegration, createRestHandler, fakeId, fakeArray, fakeIsoTimestamp, deriveSeed } from '@weldable/integration-core'
 
 const rest = createRestHandler()
 
@@ -214,6 +214,16 @@ export default defineIntegration({
           pageToken: 'query',
         },
       }),
+      mockExecute: async (_args, ctx) => ({
+        items: fakeArray(ctx.seed, 3, (s) => ({
+          id: fakeId(s, 20),
+          title: `Mock Task ${s.slice(-4)}`,
+          status: 'needsAction',
+          due: fakeIsoTimestamp(s),
+          notes: '',
+        })),
+        nextPageToken: undefined,
+      }),
     },
     {
       actionId: 'get_task',
@@ -251,6 +261,13 @@ export default defineIntegration({
         method: 'GET',
         path: '/lists/{tasklist}/tasks/{task}',
         paramMapping: { tasklist: 'path', task: 'path' },
+      }),
+      mockExecute: async (args, ctx) => ({
+        id: String(args.task ?? fakeId(ctx.seed, 20)),
+        title: 'Mock Task',
+        status: 'needsAction',
+        due: fakeIsoTimestamp(ctx.seed),
+        notes: '',
       }),
     },
     {
@@ -326,6 +343,13 @@ export default defineIntegration({
         method: 'POST',
         path: '/lists/{tasklist}/tasks',
         paramMapping: { tasklist: 'path', title: 'body', notes: 'body', due: 'body', status: 'body', parent: 'query', previous: 'query' },
+      }),
+      mockExecute: async (args, ctx) => ({
+        id: fakeId(ctx.seed, 20),
+        title: String(args.title ?? 'New Mock Task'),
+        status: 'needsAction',
+        due: String(args.due ?? fakeIsoTimestamp(ctx.seed)),
+        updated: fakeIsoTimestamp(ctx.seed),
       }),
     },
     {
