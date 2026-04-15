@@ -17,14 +17,30 @@ npm install @weldable/integration-google-tasks @weldable/integration-core
 ```ts
 import integration from '@weldable/integration-google-tasks'
 
-// Pass to a Weldable-compatible host
-console.log(integration.actions.map(a => a.id))
-```
+// List open tasks
+const list = integration.actions.find(a => a.id === 'google_tasks.list_tasks')!
 
-## Contributing and releasing
+const tasks = await list.execute(
+  { tasklist: '@default', showCompleted: false, maxResults: 20 },
+  ctx, // ActionContext from your Weldable-compatible host
+)
 
-See [CONTRIBUTING.md](https://github.com/weldable/integration-core/blob/main/CONTRIBUTING.md) in `@weldable/integration-core` for the development workflow and release process.
+// Create a task with a due date
+const create = integration.actions.find(a => a.id === 'google_tasks.create_task')!
 
-## License
+await create.execute(
+  {
+    title: 'Review pull request #42',
+    notes: 'Focus on the auth changes',
+    due: '2025-02-07T00:00:00.000Z',
+  },
+  ctx,
+)
 
-MIT
+// Mark a task complete
+const update = integration.actions.find(a => a.id === 'google_tasks.update_task')!
+
+await update.execute(
+  { task: 'abc123', status: 'completed' },
+  ctx,
+)
